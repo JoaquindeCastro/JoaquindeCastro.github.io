@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive visual atlas of Joaquin de Castro's research in astrophysical machine learning, quantum algorithms, and resilient quantum systems.">
+  <meta name="theme-color" content="#f4f1ea">
+  <title>Research Atlas — Joaquin de Castro</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="research-page">
+  <a class="skip-link" href="#research-main">Skip to research</a>
+  <header class="site-header" data-header>
+    <a class="wordmark" href="index.html" aria-label="Joaquin de Castro, home">
+      <span class="wordmark-mark" aria-hidden="true">JdC</span>
+      <span class="wordmark-name">Joaquin de Castro</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="research.html" aria-current="page">Research</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="index.html#cats">Ivy &amp; Lady</a>
+      <a href="index.html#about">About</a>
+      <a href="assets/joaquin-de-castro-resume.pdf">Résumé</a>
+    </nav>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme"><span aria-hidden="true">◐</span></button>
+  </header>
+
+  <main id="research-main">
+    <section class="paper-hero shell">
+      <div class="paper-kicker">
+        <span>Research atlas</span>
+        <span>Interactive essay · 2026</span>
+      </div>
+      <h1>Finding structure in noisy systems</h1>
+      <p class="paper-abstract">Three research threads—rare cosmic transients, quantum anomaly detection, and trustworthy quantum infrastructure—connected by a shared problem: choosing the representation that makes a hidden pattern visible.</p>
+      <div class="paper-meta">
+        <div><span>Author</span><strong>Joaquin de Castro</strong></div>
+        <div><span>Fields</span><strong>Quantum · ML · Astrophysics</strong></div>
+        <div><span>Format</span><strong>Interactive research overview</strong></div>
+      </div>
+      <p class="figure-disclaimer"><strong>Visualization note.</strong> Interactive figures below use synthetic, illustrative data to explain methods and intuition. They are not publication results.</p>
+    </section>
+
+    <div class="paper-layout shell">
+      <aside class="paper-toc" aria-label="Research atlas contents">
+        <p class="toc-label">Contents</p>
+        <a href="#introduction" class="toc-link is-active"><span>00</span> Introduction</a>
+        <a href="#supernovae" class="toc-link"><span>01</span> Rare transients</a>
+        <a href="#rewinding" class="toc-link"><span>02</span> Quantum rewinding</a>
+        <a href="#systems" class="toc-link"><span>03</span> Trustworthy systems</a>
+        <a href="#throughline" class="toc-link"><span>04</span> Throughline</a>
+      </aside>
+
+      <article class="paper-content">
+        <section class="paper-section" id="introduction" data-section>
+          <p class="section-number">00</p>
+          <h2>Introduction</h2>
+          <p class="lead">Noise is not merely an obstacle. It is a clue about which mathematical language a system wants us to use.</p>
+          <p>Astronomical surveys observe the sky at irregular intervals. Quantum models encode information in complex amplitudes that cannot be read directly. Cryptographic systems must remain secure while their underlying algorithms change. In each case, the raw object is not yet the useful object.</p>
+          <p>My research asks how to transform these systems without erasing the signal that matters. The figures in this atlas are compact explanations of that process.</p>
+
+          <figure class="concept-figure">
+            <div class="concept-flow" aria-label="A flow from observations to representation to decision">
+              <div class="concept-node"><span>01</span><strong>Observe</strong><small>irregular, noisy, incomplete</small></div>
+              <div class="concept-arrow" aria-hidden="true">→</div>
+              <div class="concept-node highlighted"><span>02</span><strong>Represent</strong><small>encode the right invariants</small></div>
+              <div class="concept-arrow" aria-hidden="true">→</div>
+              <div class="concept-node"><span>03</span><strong>Decide</strong><small>classify, detect, adapt</small></div>
+            </div>
+            <figcaption><strong>Figure 1.</strong> The recurring architecture across the projects in this atlas.</figcaption>
+          </figure>
+        </section>
+
+        <section class="paper-section" id="supernovae" data-section>
+          <p class="section-number">01</p>
+          <h2>Finding rare supernovae in irregular light curves</h2>
+          <p class="lead">A telescope does not hand us a smooth movie. It gives us scattered measurements, uneven in time, with uncertainty attached to every point.</p>
+          <p>Type Ibn supernovae are rare stellar explosions whose light curves can be confused with more common transients. The task is to turn sparse photometry into a representation that a classifier can compare across thousands of objects.</p>
+
+          <div class="interactive-figure" data-figure="supernova">
+            <div class="figure-header">
+              <div>
+                <p class="figure-label">Interactive figure</p>
+                <h3>From scattered observations to a candidate score</h3>
+              </div>
+              <div class="figure-status"><span></span> illustrative simulation</div>
+            </div>
+            <div class="figure-controls" role="group" aria-label="Supernova visualization controls">
+              <label>Object
+                <select id="sn-object">
+                  <option value="0">Transient A · ordinary</option>
+                  <option value="1" selected>Transient B · Ibn-like</option>
+                  <option value="2">Transient C · ambiguous</option>
+                </select>
+              </label>
+              <label>Model smoothness
+                <input id="sn-smooth" type="range" min="1" max="10" value="6">
+              </label>
+              <button class="mini-button" id="sn-toggle" type="button" aria-pressed="true">Hide uncertainty</button>
+            </div>
+            <div class="chart-wrap">
+              <svg id="sn-chart" class="data-chart" viewBox="0 0 900 420" role="img" aria-label="Synthetic supernova light curve with observations, Gaussian process estimate, and uncertainty band"></svg>
+              <div class="chart-tooltip" id="sn-tooltip" role="status" aria-live="polite"></div>
+            </div>
+            <div class="pipeline" aria-label="Machine learning pipeline">
+              <div><span>1</span><strong>Photometry</strong><small>irregular observations</small></div>
+              <i aria-hidden="true">→</i>
+              <div><span>2</span><strong>Gaussian process</strong><small>continuous estimate</small></div>
+              <i aria-hidden="true">→</i>
+              <div><span>3</span><strong>Features</strong><small>shape, color, timescale</small></div>
+              <i aria-hidden="true">→</i>
+              <div class="pipeline-output"><span>4</span><strong id="sn-score">84% candidate</strong><small>classifier score</small></div>
+            </div>
+            <p class="figure-insight" id="sn-insight"><strong>What to notice:</strong> the fast rise and narrower post-peak evolution remain visible after interpolation, giving the classifier a comparable shape representation.</p>
+          </div>
+
+          <h3>Why the representation matters</h3>
+          <p>A naive model can mistake missing observations for astrophysical behavior. A Gaussian process instead treats the light curve as a distribution over plausible continuous functions. From that distribution, we can compute features at consistent times and pass them to a tree-based classifier.</p>
+          <div class="result-band" aria-label="Selected project outcomes">
+            <div><strong>10,000+</strong><span>objects processed</span></div>
+            <div><strong>+20%<sup>+</sup></strong><span>precision improvement</span></div>
+            <div><strong>5</strong><span>Ibn candidates surfaced</span></div>
+            <div><strong>40 h → &lt;10 min</strong><span>runtime reduction</span></div>
+          </div>
+        </section>
+
+        <section class="paper-section" id="rewinding" data-section>
+          <p class="section-number">02</p>
+          <h2>Rewinding quantum models to expose anomalies</h2>
+          <p class="lead">An anomaly can be defined as a pattern that a model cannot cleanly undo.</p>
+          <p>Active galactic nuclei vary over time in ways that are noisy, stochastic, and astrophysically rich. Quantum variational rewinding asks a different question from ordinary classification: after learning a representation of typical behavior, how well can a parameterized quantum process reverse an encoded signal?</p>
+
+          <div class="interactive-figure" data-figure="qvr">
+            <div class="figure-header">
+              <div>
+                <p class="figure-label">Interactive figure</p>
+                <h3>Encode → evolve → rewind → score</h3>
+              </div>
+              <div class="figure-status"><span></span> current research direction</div>
+            </div>
+            <div class="figure-controls qvr-controls" role="group" aria-label="Quantum rewinding visualization controls">
+              <label>Signal type
+                <select id="qvr-signal">
+                  <option value="normal" selected>Typical variability</option>
+                  <option value="drift">Slow drift anomaly</option>
+                  <option value="burst">Transient burst anomaly</option>
+                </select>
+              </label>
+              <label>Rewinding depth
+                <input id="qvr-depth" type="range" min="1" max="8" value="5">
+              </label>
+              <button class="mini-button" id="qvr-run" type="button">Run rewinding</button>
+            </div>
+            <div class="qvr-grid">
+              <div class="qvr-panel">
+                <p class="mini-label">Classical signal</p>
+                <svg id="qvr-signal-chart" class="data-chart compact-chart" viewBox="0 0 520 260" role="img" aria-label="Synthetic active galactic nucleus time series"></svg>
+              </div>
+              <div class="qvr-panel">
+                <p class="mini-label">Variational circuit</p>
+                <svg id="qvr-circuit" class="circuit-chart" viewBox="0 0 520 260" role="img" aria-label="Simplified variational quantum circuit diagram"></svg>
+              </div>
+            </div>
+            <div class="rewind-result">
+              <div class="score-ring" id="qvr-ring" style="--score: 18">
+                <span id="qvr-score">0.18</span>
+                <small>rewind error</small>
+              </div>
+              <div>
+                <p class="mini-label">Interpretation</p>
+                <h4 id="qvr-verdict">Consistent with learned dynamics</h4>
+                <p id="qvr-copy">The circuit approximately returns the encoded state toward its reference, producing a low anomaly score.</p>
+              </div>
+            </div>
+          </div>
+
+          <h3>The research question</h3>
+          <p>The important question is not whether a quantum circuit can draw a complicated boundary. It is whether the circuit learns a representation of temporal structure that is useful under realistic noise, data volume, and classical baselines. The project therefore treats quantum advantage as an empirical hypothesis—not an assumption.</p>
+        </section>
+
+        <section class="paper-section" id="systems" data-section>
+          <p class="section-number">03</p>
+          <h2>Designing quantum systems people can trust</h2>
+          <p class="lead">A powerful algorithm is not yet a dependable system. Trust comes from knowing what can change, what must remain invariant, and how failure is contained.</p>
+          <p>My work in quantum information and post-quantum security spans blind quantum computing, error-correction ideas, random-circuit simulation, and crypto agility. These topics share a concern with structure under changing conditions.</p>
+
+          <div class="interactive-figure systems-figure" data-figure="systems">
+            <div class="figure-header">
+              <div>
+                <p class="figure-label">Interactive figure</p>
+                <h3>Resilience is an architecture, not an algorithm</h3>
+              </div>
+            </div>
+            <div class="systems-controls" role="group" aria-label="Resilience architecture control">
+              <button class="system-tab is-active" data-system="quantum" type="button">Blind quantum computing</button>
+              <button class="system-tab" data-system="circuits" type="button">Random circuits</button>
+              <button class="system-tab" data-system="crypto" type="button">Crypto agility</button>
+            </div>
+            <div class="systems-canvas" id="systems-canvas" aria-live="polite"></div>
+          </div>
+
+          <div class="principles-grid">
+            <article><span>01</span><h3>Separate interface from implementation</h3><p>Systems adapt faster when the surrounding workflow does not depend on one algorithm forever.</p></article>
+            <article><span>02</span><h3>Measure what survives intervention</h3><p>A representation is more convincing when it remains meaningful under ablation, noise, or substitution.</p></article>
+            <article><span>03</span><h3>Make uncertainty visible</h3><p>Trustworthy technical work exposes assumptions, baselines, and failure modes rather than hiding them.</p></article>
+          </div>
+        </section>
+
+        <section class="paper-section closing-section" id="throughline" data-section>
+          <p class="section-number">04</p>
+          <h2>The throughline</h2>
+          <blockquote>Find the representation that preserves what matters—and makes the next decision possible.</blockquote>
+          <p>This is the thread connecting my research and the systems I want to build: scientific models that reveal hidden structure, infrastructure that can adapt without breaking, and institutions that help more people work at the frontier.</p>
+          <div class="paper-cta">
+            <a class="button button-primary" href="mailto:jdecastro@college.harvard.edu">Discuss the work</a>
+            <a class="text-link" href="index.html">Return to portfolio →</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer shell">
+    <p>© <span data-year></span> Joaquin de Castro</p>
+    <p>Illustrative visualizations use synthetic data.</p>
+    <a href="#research-main">Back to top ↑</a>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="research.js"></script>
+</body>
+</html>
