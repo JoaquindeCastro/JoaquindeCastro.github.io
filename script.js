@@ -1,27 +1,15 @@
 (() => {
-  const ivyTheme = document.createElement('link');
-  ivyTheme.rel = 'stylesheet';
-  ivyTheme.href = 'ivy.css';
-  document.head.appendChild(ivyTheme);
-
   const root = document.documentElement;
   const toggle = document.querySelector('[data-theme-toggle]');
-  const themeColor = document.querySelector('meta[name="theme-color"]');
-  const syncThemeColor = () => {
-    if (themeColor) themeColor.content = root.dataset.theme === 'dark' ? '#1f1915' : '#f5eddf';
-  };
-
   let savedTheme = null;
   try { savedTheme = localStorage.getItem('jdc-theme'); } catch (_) { savedTheme = null; }
   const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   root.dataset.theme = savedTheme || (systemDark ? 'dark' : 'light');
-  syncThemeColor();
 
   if (toggle) {
     toggle.addEventListener('click', () => {
       const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
       root.dataset.theme = next;
-      syncThemeColor();
       try { localStorage.setItem('jdc-theme', next); } catch (_) { /* storage may be unavailable */ }
       window.dispatchEvent(new CustomEvent('themechange'));
     });
