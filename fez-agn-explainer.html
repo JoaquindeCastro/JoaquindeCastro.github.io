@@ -1,50 +1,634 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fez-native AGN quantum reservoir — Joaquin de Castro</title>
-<style>
-:root{--bg:#08111f;--panel:#0d1a2b;--ink:#eef5ff;--muted:#9cb1cc;--line:#284463;--blue:#2f7df6;--g:#38d67a;--r:#ff5c65;--bridge:#a787ff;--gold:#ffd166}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 30% 0,#17304e 0,#08111f 42%,#050b14 100%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.shell{max-width:1600px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:18px}.top h1{font-size:clamp(28px,3.2vw,48px);line-height:1;margin:0 0 8px;letter-spacing:-.04em}.top p{margin:0;color:var(--muted);max-width:900px;line-height:1.5}.back{color:#d9e8ff;text-decoration:none;border:1px solid var(--line);padding:10px 13px;border-radius:10px;white-space:nowrap}.controls{display:flex;gap:9px;flex-wrap:wrap;position:sticky;top:8px;z-index:10;background:#091526e8;border:1px solid var(--line);padding:10px;border-radius:14px;backdrop-filter:blur(12px)}button{border:1px solid #315474;background:#10223a;color:#dceaff;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}button.active{background:#1d5fcc;border-color:#77a7ff}.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px}.card{background:linear-gradient(180deg,#102138,#0b1728);border:1px solid var(--line);border-radius:20px;overflow:hidden}.head{padding:15px 17px 4px}.head h2{margin:0;font-size:18px}.head p{margin:5px 0 0;color:var(--muted);font-size:12px}svg{display:block;width:100%;height:auto}.raw,.agg,.node,.edge{transition:opacity .2s,filter .2s}.raw{fill-opacity:.34}.agg{cursor:pointer}.node{cursor:pointer}.dim{opacity:.07!important}.focus{opacity:1!important;filter:drop-shadow(0 0 10px currentColor)}#tip{position:fixed;opacity:0;pointer-events:none;z-index:50;max-width:300px;background:#07111ff2;border:1px solid #52769e;border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.45}.notes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.note{border:1px solid var(--line);background:#0b1728;border-radius:14px;padding:13px}.note strong{display:block;margin-bottom:5px}.note span{color:var(--muted);font-size:12px;line-height:1.45}@media(max-width:900px){.stage{grid-template-columns:1fr}.notes{grid-template-columns:1fr 1fr}.top{align-items:start;flex-direction:column}}@media(max-width:560px){.shell{padding:10px}.notes{grid-template-columns:1fr}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Interactive explanation of a Fez-native quantum reservoir for AGN variability.">
+  <title>Fez-native AGN quantum reservoir — Joaquin de Castro</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --filter-g: var(--green);
+      --filter-r: var(--accent);
+      --bridge: #8066a5;
+      --bridge-soft: #ddd3e9;
+    }
+    html[data-theme="dark"] {
+      --bridge: #b49ad8;
+      --bridge-soft: #3d324b;
+    }
+    body.fez-page { min-height: 100vh; }
+    .fez-main { padding-block: 54px 72px; }
+    .fez-intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 36px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+    .fez-intro h1 {
+      max-width: 980px;
+      margin: 12px 0 16px;
+      font-size: clamp(48px, 6vw, 92px);
+      line-height: .94;
+      letter-spacing: -.065em;
+    }
+    .fez-intro p:not(.eyebrow) {
+      max-width: 880px;
+      margin: 0;
+      font: clamp(18px, 1.8vw, 25px)/1.52 Georgia, serif;
+      color: var(--muted);
+    }
+    .fez-controls {
+      position: sticky;
+      top: calc(var(--header-h) + 10px);
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+    }
+    .fez-controls button {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 0;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .fez-controls button:hover { border-color: var(--ink); }
+    .fez-controls button.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+    .fez-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+    .fez-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+    .fez-card-head {
+      min-height: 86px;
+      padding: 20px 22px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .fez-card-head h2 { margin: 0; font-size: 21px; letter-spacing: -.03em; }
+    .fez-card-head p { margin: 5px 0 0; font: 11px/1.45 ui-monospace, monospace; color: var(--muted); }
+    .fez-svg-wrap { position: relative; min-height: 620px; }
+    .fez-svg {
+      display: block;
+      width: 100%;
+      height: 620px;
+      overflow: visible;
+      background: var(--white);
+    }
+    .raw-point,.aggregate-point,.aggregate-line,.main-node,.bridge-node,.fez-edge {
+      transition: opacity .22s ease, filter .22s ease;
+    }
+    .aggregate-point,.main-node,.bridge-node { cursor: pointer; }
+    .is-dim { opacity: .08 !important; }
+    .is-focus { opacity: 1 !important; filter: drop-shadow(0 0 7px currentColor); }
+    .fez-tip {
+      position: fixed;
+      z-index: 100;
+      max-width: 320px;
+      opacity: 0;
+      pointer-events: none;
+      padding: 10px 12px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--paper);
+      font: 12px/1.5 ui-monospace, monospace;
+      box-shadow: var(--shadow);
+    }
+    .fez-notes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+    .fez-note {
+      min-height: 145px;
+      display: grid;
+      align-content: space-between;
+      gap: 20px;
+      padding: 18px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .fez-note strong { font-size: 15px; }
+    .fez-note span { font: 13px/1.55 Georgia, serif; color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; font: 10px ui-monospace, monospace; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    @media (max-width: 1050px) {
+      .fez-stage { grid-template-columns: 1fr; }
+      .fez-svg-wrap,.fez-svg { min-height: 600px; height: 600px; }
+      .fez-notes { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .fez-main { padding-block: 34px 54px; }
+      .fez-intro { grid-template-columns: 1fr; align-items: start; }
+      .fez-intro h1 { font-size: clamp(45px, 13vw, 66px); }
+      .fez-controls { position: static; }
+      .fez-controls button { flex: 1 1 150px; }
+      .fez-svg-wrap,.fez-svg { min-height: 500px; height: 500px; }
+      .fez-notes { grid-template-columns: 1fr; }
+    }
+    body.is-embedded .site-header,
+    body.is-embedded .fez-intro,
+    body.is-embedded .site-footer { display: none; }
+    body.is-embedded .fez-main { padding-block: 12px; }
+    body.is-embedded .shell { width: min(1500px, calc(100% - 24px)); }
+    body.is-embedded .fez-controls { top: 8px; }
+  </style>
 </head>
-<body>
-<div class="shell">
-  <div class="top"><div><h1>Fez-native quantum reservoir for AGN variability</h1><p>Raw ZTF observations are compressed into 64 chronological cells in each filter, then mapped onto 128 data qubits following IBM Fez connectivity. Hover a main qubit to recover its source cell, or a purple bridge qubit to see the two regions whose information it mixes.</p></div><a class="back" href="research.html#rewinding">← Research atlas</a></div>
-  <div class="controls"><button id="play">▶ Play walkthrough</button><button class="step active" data-step="1">1 · Raw AGN</button><button class="step" data-step="2">2 · Aggregate to 128</button><button class="step" data-step="3">3 · Encode on Fez</button><button class="step" data-step="4">4 · Read bridge Z</button></div>
-  <div class="stage">
-    <section class="card"><div class="head"><h2>Sample AGN light curve</h2><p>Illustrative relative flux · green = g filter · red = r filter</p></div><svg id="curve" viewBox="0 0 760 620"></svg></section>
-    <section class="card"><div class="head"><h2>IBM Fez connectivity</h2><p>128 main qubits + 28 bridge qubits · exact 8 × 16 logical Fez layout</p></div><svg id="fez" viewBox="0 0 760 620"></svg></section>
-  </div>
-  <div class="notes"><div class="note"><strong>64 cells per filter</strong><span>Each cell aggregates observations in one equal-width time interval.</span></div><div class="note"><strong>Level + fast variability</strong><span>Each main qubit receives level through RY and short-timescale variability through RZ.</span></div><div class="note"><strong>One native brickwork block</strong><span>The shallow design preserves repeatable signal while following Fez-native CZ edges.</span></div><div class="note"><strong>Bridge Z readout</strong><span>Bridge qubits receive no direct AGN input; their outputs emerge from interactions with neighboring regions.</span></div></div>
-</div>
-<div id="tip"></div>
-<script>
-const NS='http://www.w3.org/2000/svg',C={g:'#38d67a',r:'#ff5c65',b:'#a787ff',blue:'#2f7df6',line:'#294a6b',gold:'#ffd166'};
-const curve=document.getElementById('curve'),fez=document.getElementById('fez'),tip=document.getElementById('tip');
-const E=(tag,a={},p)=>{const e=document.createElementNS(NS,tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));(p||curve).append(e);return e};
-const x0=58,x1=735,yTop=42,yMid=300,yBot=558,x=i=>x0+(i/63)*(x1-x0);
-function base(b,i){const drift=.23*Math.sin(i/8.5)+.16*Math.sin(i/3.9+1.3)+(b==='g'?.10:-.02)*Math.sin(i/5.4);const event=.42*Math.exp(-((i-43)/7)**2)-.25*Math.exp(-((i-22)/5)**2);return 1+drift+event+(b==='g'?.06*Math.sin(i/2.2):0)}
-const agg={g:[],r:[]},raw=[];for(const b of ['g','r'])for(let i=0;i<64;i++){const val=base(b,i);agg[b].push(val);const n=3+(i*7+(b==='g'?2:5))%7;for(let j=0;j<n;j++){const tx=i+(j+1)/(n+1)-.5,noise=.035*Math.sin(i*11+j*5+(b==='g'?0:2));raw.push({b,i,tx,val:val+noise})}}
-function y(b,v){const top=b==='g'?70:330,bot=b==='g'?270:530;return bot-(v-.35)/1.55*(bot-top)}
-let rawEls=[],aggEls={g:[],r:[]},main=[],bridges=[],edges=[],anims=[],step=1,playing=false,timer=null;
-function axis(){E('line',{x1:x0,y1:yMid-8,x2:x1,y2:yMid-8,stroke:C.line});E('text',{x:18,y:178,fill:C.g,'font-size':13,'font-weight':800},curve).textContent='g';E('text',{x:18,y:438,fill:C.r,'font-size':13,'font-weight':800},curve).textContent='r';E('text',{x:380,y:592,fill:'#9cb1cc','text-anchor':'middle','font-size':11},curve).textContent='TIME → 64 EQUAL CELLS PER FILTER'}
-function drawCurve(){axis();for(const d of raw){const cx=x(d.tx),cy=y(d.b,d.val),targetX=x(d.i),targetY=y(d.b,agg[d.b][d.i]);const q=E('circle',{cx,cy,r:2.5,fill:C[d.b],class:'raw','data-b':d.b,'data-i':d.i});q.dataset.dx=targetX-cx;q.dataset.dy=targetY-cy;rawEls.push(q)}for(const b of ['g','r']){let path='';for(let i=0;i<64;i++){const cx=x(i),cy=y(b,agg[b][i]);path+=(i?'L':'M')+cx+','+cy;const p=E('circle',{cx,cy,r:4.5,fill:C[b],stroke:'#07111f','stroke-width':1.5,class:'agg','data-b':b,'data-i':i,opacity:0});p.addEventListener('mouseenter',e=>focusCell(b,i,e));p.addEventListener('mouseleave',clear);aggEls[b][i]=p}const l=E('path',{d:path,fill:'none',stroke:C[b],'stroke-width':2,opacity:0,class:'agg line'});l.dataset.band=b}}
-const rows=[{b:'g',s:0},{b:'r',s:0},{b:'r',s:16},{b:'g',s:16},{b:'g',s:32},{b:'r',s:32},{b:'r',s:48},{b:'g',s:48}],mx=c=>55+c*43,my=r=>54+r*72;
-function bridgeCols(g){return g%2===0?[3,7,11,15]:[1,5,9,13]}
-function drawFez(){for(let r=0;r<8;r++){for(let c=0;c<15;c++){const e=E('line',{x1:mx(c),y1:my(r),x2:mx(c+1),y2:my(r),stroke:C.line,'stroke-width':3,class:'edge'},fez);edges.push(e)}for(let c=0;c<16;c++){const idx=r*16+c,cell=rows[r].s+c,g=E('g',{class:'node',opacity:.12},fez);E('circle',{cx:mx(c),cy:my(r),r:12,fill:C[rows[r].b],stroke:'#07111f','stroke-width':2},g);g.addEventListener('mouseenter',e=>focusMain(idx,e));g.addEventListener('mouseleave',clear);main[idx]={g,b:rows[r].b,cell}}}let bi=0;for(let gap=0;gap<7;gap++)for(const c of bridgeCols(gap)){const yy=(my(gap)+my(gap+1))/2,u=gap*16+c,l=(gap+1)*16+c;const e1=E('line',{x1:mx(c),y1:my(gap),x2:mx(c),y2:yy,stroke:C.line,'stroke-width':3,class:'edge'},fez),e2=E('line',{x1:mx(c),y1:yy,x2:mx(c),y2:my(gap+1),stroke:C.line,'stroke-width':3,class:'edge'},fez);edges.push(e1,e2);const g=E('g',{class:'node',opacity:.1},fez);E('circle',{cx:mx(c),cy:yy,r:10,fill:C.b,stroke:'#07111f','stroke-width':2},g);g.addEventListener('mouseenter',e=>focusBridge(bi,e));g.addEventListener('mouseleave',clear);bridges.push({g,u,l,e:[e1,e2]});bi++}}
-function stopAnim(){anims.forEach(a=>a.cancel());anims=[];rawEls.forEach(e=>{e.style.transform='translate(0,0)';e.style.opacity=''})}
-function animateAggregate(){stopAnim();document.querySelectorAll('.agg').forEach(e=>e.setAttribute('opacity',0));rawEls.forEach((dot,k)=>{const i=+dot.dataset.i,b=dot.dataset.b,delay=i*24+(b==='r'?110:0)+(k%4)*8;anims.push(dot.animate([{transform:'translate(0,0)',opacity:.34},{transform:`translate(${dot.dataset.dx}px,${dot.dataset.dy}px)`,opacity:.8}],{duration:2100,delay,easing:'cubic-bezier(.2,.72,.2,1)',fill:'forwards'}))});const pause=2600;for(const b of ['g','r'])for(let i=0;i<64;i++){const p=aggEls[b][i];anims.push(p.animate([{opacity:0,transform:'scale(.35)',fill:C[b]},{opacity:1,transform:'scale(1.65)',offset:.55,fill:C[b]},{opacity:1,transform:'scale(1)',fill:C[b]}],{duration:650,delay:pause+i*34+(b==='r'?180:0),easing:'cubic-bezier(.16,.8,.2,1)',fill:'forwards'}))}document.querySelectorAll('.agg.line').forEach((l,j)=>anims.push(l.animate([{opacity:0},{opacity:.8}],{duration:900,delay:pause+700+j*180,fill:'forwards'})))}
-function setStep(s){step=s;stopAnim();document.querySelectorAll('.step').forEach(b=>b.classList.toggle('active',+b.dataset.step===s));rawEls.forEach(e=>e.style.opacity=s===1?'.34':s===2?'.34':'.05');document.querySelectorAll('.agg').forEach(e=>e.setAttribute('opacity',s>=2?1:0));main.forEach(n=>n.g.setAttribute('opacity',s>=3?1:.12));bridges.forEach(n=>n.g.setAttribute('opacity',s===4?1:s>=3?.55:.1));edges.forEach(e=>e.setAttribute('opacity',s>=3?1:.14));if(s===2)requestAnimationFrame(()=>requestAnimationFrame(animateAggregate))}
-function dimAll(){[...rawEls,...document.querySelectorAll('.agg'),...main.map(n=>n.g),...bridges.map(n=>n.g),...edges].forEach(e=>e.classList.add('dim'))}
-function clear(){[...rawEls,...document.querySelectorAll('.agg'),...main.map(n=>n.g),...bridges.map(n=>n.g),...edges].forEach(e=>e.classList.remove('dim','focus'));tip.style.opacity=0}
-function focusCell(b,i,ev){clear();dimAll();aggEls[b][i].classList.remove('dim');aggEls[b][i].classList.add('focus');rawEls.filter(e=>e.dataset.b===b&&+e.dataset.i===i).forEach(e=>{e.classList.remove('dim');e.classList.add('focus')});const idx=main.findIndex(n=>n.b===b&&n.cell===i);if(idx>=0){main[idx].g.classList.remove('dim');main[idx].g.classList.add('focus')}show(ev,`<b style="color:${C[b]}">${b.toUpperCase()} cell ${i+1}/64</b><br>Raw measurements in this interval converge to one aggregate point, then map to logical main qubit ${idx}.`)}
-function focusMain(idx,ev){const n=main[idx];focusCell(n.b,n.cell,ev)}
-function focusBridge(i,ev){clear();dimAll();const b=bridges[i],u=main[b.u],l=main[b.l];b.g.classList.remove('dim');b.g.classList.add('focus');u.g.classList.remove('dim');u.g.classList.add('focus');l.g.classList.remove('dim');l.g.classList.add('focus');b.e.forEach(e=>{e.classList.remove('dim');e.classList.add('focus')});for(const n of [u,l]){aggEls[n.b][n.cell].classList.remove('dim');aggEls[n.b][n.cell].classList.add('focus');rawEls.filter(e=>e.dataset.b===n.b&&+e.dataset.i===n.cell).forEach(e=>e.classList.remove('dim'))}const kind=u.b===l.b?'within-band temporal bridge':'cross-band bridge';show(ev,`<b style="color:${C.b}">Bridge qubit ${i}</b><br>${kind}: ${u.b.toUpperCase()} cell ${u.cell+1} ↔ ${l.b.toUpperCase()} cell ${l.cell+1}.<br>No feature is loaded directly here; the bridge Z value emerges from the two connected main qubits.`)}
-function show(ev,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=ev.clientX+14+'px';tip.style.top=ev.clientY+14+'px'}window.addEventListener('mousemove',e=>{if(tip.style.opacity==1){tip.style.left=e.clientX+14+'px';tip.style.top=e.clientY+14+'px'}})
-function schedule(){clearTimeout(timer);if(!playing)return;const wait=step===2?8500:4800;timer=setTimeout(()=>{setStep(step%4+1);schedule()},wait)}document.getElementById('play').onclick=()=>{playing=!playing;document.getElementById('play').textContent=playing?'❚❚ Pause walkthrough':'▶ Play walkthrough';schedule()};document.querySelectorAll('.step').forEach(b=>b.onclick=()=>{playing=false;clearTimeout(timer);document.getElementById('play').textContent='▶ Play walkthrough';setStep(+b.dataset.step)});
-drawCurve();drawFez();setStep(1);
-</script>
+<body class="fez-page">
+  <a class="skip-link" href="#main">Skip to explainer</a>
+  <header class="site-header" data-header>
+    <a class="wordmark" href="index.html" aria-label="Joaquin de Castro, home">
+      <span class="wordmark-mark" aria-hidden="true">JdC</span>
+      <span class="wordmark-name">Joaquin de Castro</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="research.html" aria-current="page">Research</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="index.html#about">About</a>
+    </nav>
+    <button aria-label="Switch color theme" class="theme-toggle" data-theme-toggle type="button"><span aria-hidden="true">◐</span></button>
+  </header>
+
+  <main id="main" class="fez-main shell">
+    <section class="fez-intro">
+      <div>
+        <p class="eyebrow">Interactive method explainer</p>
+        <h1>From an AGN light curve to IBM Fez.</h1>
+        <p>Raw ZTF observations are aggregated into 64 chronological cells in each filter, encoded on 128 main qubits, and mixed through 28 bridge qubits that follow Fez connectivity.</p>
+        <div class="legend" aria-label="Color legend">
+          <span><i style="background:var(--filter-g)"></i>g filter</span>
+          <span><i style="background:var(--filter-r)"></i>r filter</span>
+          <span><i style="background:var(--bridge)"></i>bridge qubit</span>
+        </div>
+      </div>
+      <a class="text-link" href="research.html#rewinding">Return to Research Atlas →</a>
+    </section>
+
+    <div class="fez-controls" role="group" aria-label="Walkthrough controls">
+      <button id="play" type="button">▶ Play walkthrough</button>
+      <button class="step active" data-step="1" type="button">1 · Raw AGN</button>
+      <button class="step" data-step="2" type="button">2 · Aggregate to 128</button>
+      <button class="step" data-step="3" type="button">3 · Encode on Fez</button>
+      <button class="step" data-step="4" type="button">4 · Read bridge Z</button>
+    </div>
+
+    <div class="fez-stage">
+      <section class="fez-card">
+        <div class="fez-card-head">
+          <h2>Sample AGN light curve</h2>
+          <p>Illustrative relative flux · hover an aggregate point or a qubit</p>
+        </div>
+        <div class="fez-svg-wrap">
+          <svg id="curve" class="fez-svg" viewBox="0 0 760 620" role="img" aria-label="AGN light curve with raw and aggregated g and r filter observations"></svg>
+        </div>
+      </section>
+
+      <section class="fez-card">
+        <div class="fez-card-head">
+          <h2>IBM Fez connectivity</h2>
+          <p>128 main qubits + 28 bridge qubits · exact 8 × 16 logical layout</p>
+        </div>
+        <div class="fez-svg-wrap">
+          <svg id="fez" class="fez-svg" viewBox="0 0 760 620" role="img" aria-label="IBM Fez logical connectivity grid"></svg>
+        </div>
+      </section>
+    </div>
+
+    <div class="fez-notes">
+      <div class="fez-note"><strong>64 cells per filter</strong><span>Each point summarizes one equal-width time interval, preserving the chronology of both bands.</span></div>
+      <div class="fez-note"><strong>Level + fast variability</strong><span>Each main qubit receives the cell level through RY and short-timescale variability through RZ.</span></div>
+      <div class="fez-note"><strong>One native brickwork block</strong><span>The shallow design follows supported Fez CZ connections while avoiding the noise of repeated deep re-uploading.</span></div>
+      <div class="fez-note"><strong>Bridge Z readout</strong><span>Bridge qubits receive no direct input. Their measured values emerge from interactions with connected time-band regions.</span></div>
+    </div>
+  </main>
+
+  <footer class="site-footer shell">
+    <p>© <span data-year></span> Joaquin A. de Castro.</p>
+    <p>Quantum machine learning for astrophysical time series.</p>
+    <div class="footer-links"><a href="research.html">Research Atlas</a><a href="#main">Back to top ↑</a></div>
+  </footer>
+
+  <div id="tip" class="fez-tip" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+  <script>
+  (() => {
+    const NS = 'http://www.w3.org/2000/svg';
+    const curve = document.getElementById('curve');
+    const fez = document.getElementById('fez');
+    const tip = document.getElementById('tip');
+    const root = document.documentElement;
+
+    if (new URLSearchParams(location.search).has('embed') || window.self !== window.top) {
+      document.body.classList.add('is-embedded');
+    }
+
+    const css = name => getComputedStyle(root).getPropertyValue(name).trim();
+    const colors = () => ({
+      g: css('--filter-g'),
+      r: css('--filter-r'),
+      bridge: css('--bridge'),
+      line: css('--line'),
+      ink: css('--ink'),
+      muted: css('--muted'),
+      white: css('--white'),
+      paper: css('--paper')
+    });
+    const add = (parent, tag, attrs = {}) => {
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+      parent.appendChild(el);
+      return el;
+    };
+    const label = (parent, text, attrs = {}) => {
+      const el = add(parent, 'text', attrs);
+      el.textContent = text;
+      return el;
+    };
+
+    const x0 = 62, x1 = 728;
+    const x = i => x0 + (i / 63) * (x1 - x0);
+    const y = (band, value) => {
+      const top = band === 'g' ? 74 : 334;
+      const bottom = band === 'g' ? 270 : 530;
+      return bottom - ((value - 0.35) / 1.55) * (bottom - top);
+    };
+    const base = (band, i) => {
+      const drift = 0.23 * Math.sin(i / 8.5)
+        + 0.16 * Math.sin(i / 3.9 + 1.3)
+        + (band === 'g' ? 0.10 : -0.02) * Math.sin(i / 5.4);
+      const event = 0.42 * Math.exp(-Math.pow((i - 43) / 7, 2))
+        - 0.25 * Math.exp(-Math.pow((i - 22) / 5, 2));
+      return 1 + drift + event + (band === 'g' ? 0.06 * Math.sin(i / 2.2) : 0);
+    };
+
+    const aggregate = { g: [], r: [] };
+    const rawData = [];
+    for (const band of ['g', 'r']) {
+      for (let i = 0; i < 64; i++) {
+        const value = base(band, i);
+        aggregate[band].push(value);
+        const count = 3 + ((i * 7 + (band === 'g' ? 2 : 5)) % 7);
+        for (let j = 0; j < count; j++) {
+          const time = i + (j + 1) / (count + 1) - 0.5;
+          const noise = 0.035 * Math.sin(i * 11 + j * 5 + (band === 'g' ? 0 : 2));
+          rawData.push({ band, cell: i, time, value: value + noise });
+        }
+      }
+    }
+
+    const rawEls = [];
+    const aggregateEls = { g: [], r: [] };
+    const aggregateLines = [];
+    const main = [];
+    const bridges = [];
+    const edges = [];
+    let animations = [];
+    let step = 1;
+    let playing = false;
+    let timer = null;
+
+    function drawCurve() {
+      const C = colors();
+      curve.replaceChildren();
+
+      add(curve, 'line', { x1: x0, y1: 302, x2: x1, y2: 302, stroke: C.line, 'stroke-width': 1 });
+      [0, 16, 32, 48, 63].forEach(i => {
+        const xx = x(i);
+        add(curve, 'line', { x1: xx, y1: 55, x2: xx, y2: 548, stroke: C.line, 'stroke-width': 1, opacity: 0.42 });
+        label(curve, String(i + 1), { x: xx, y: 576, fill: C.muted, 'text-anchor': 'middle', 'font-size': 10, 'font-family': 'ui-monospace, monospace' });
+      });
+      label(curve, 'g', { x: 22, y: 174, fill: C.g, 'font-size': 16, 'font-weight': 800 });
+      label(curve, 'r', { x: 22, y: 434, fill: C.r, 'font-size': 16, 'font-weight': 800 });
+      label(curve, 'TIME → 64 EQUAL CELLS PER FILTER', { x: 380, y: 605, fill: C.muted, 'text-anchor': 'middle', 'font-size': 10, 'font-family': 'ui-monospace, monospace' });
+
+      rawEls.length = 0;
+      for (const d of rawData) {
+        const cx = x(d.time);
+        const cy = y(d.band, d.value);
+        const targetX = x(d.cell);
+        const targetY = y(d.band, aggregate[d.band][d.cell]);
+        const dot = add(curve, 'circle', {
+          cx, cy, r: 2.6, fill: C[d.band],
+          class: 'raw-point', opacity: 0.62,
+          'data-band': d.band, 'data-cell': d.cell
+        });
+        dot.dataset.dx = targetX - cx;
+        dot.dataset.dy = targetY - cy;
+        rawEls.push(dot);
+      }
+
+      for (const band of ['g', 'r']) {
+        let path = '';
+        for (let i = 0; i < 64; i++) {
+          const cx = x(i);
+          const cy = y(band, aggregate[band][i]);
+          path += `${i ? 'L' : 'M'}${cx},${cy}`;
+          const point = add(curve, 'circle', {
+            cx, cy, r: 2.8, fill: C[band], stroke: C.white, 'stroke-width': 1.5,
+            class: 'aggregate-point', opacity: 0,
+            'data-band': band, 'data-cell': i
+          });
+          point.addEventListener('mouseenter', event => focusCell(band, i, event));
+          point.addEventListener('mouseleave', clearFocus);
+          aggregateEls[band][i] = point;
+        }
+        const line = add(curve, 'path', {
+          d: path, fill: 'none', stroke: C[band], 'stroke-width': 2,
+          class: 'aggregate-line', opacity: 0
+        });
+        aggregateLines.push(line);
+      }
+    }
+
+    const rows = [
+      { band: 'g', start: 0 }, { band: 'r', start: 0 },
+      { band: 'r', start: 16 }, { band: 'g', start: 16 },
+      { band: 'g', start: 32 }, { band: 'r', start: 32 },
+      { band: 'r', start: 48 }, { band: 'g', start: 48 }
+    ];
+    const mx = column => 56 + column * 43;
+    const my = row => 54 + row * 72;
+    const bridgeColumns = gap => gap % 2 === 0 ? [3, 7, 11, 15] : [1, 5, 9, 13];
+
+    function drawFez() {
+      const C = colors();
+      fez.replaceChildren();
+      main.length = 0;
+      bridges.length = 0;
+      edges.length = 0;
+
+      for (let row = 0; row < 8; row++) {
+        label(fez, `${rows[row].band}${rows[row].start + 1}–${rows[row].start + 16}`, {
+          x: 11, y: my(row) + 4, fill: C.muted, 'font-size': 9, 'font-family': 'ui-monospace, monospace'
+        });
+        for (let column = 0; column < 15; column++) {
+          const edge = add(fez, 'line', {
+            x1: mx(column), y1: my(row), x2: mx(column + 1), y2: my(row),
+            stroke: C.line, 'stroke-width': 2.5, class: 'fez-edge', opacity: 0.2
+          });
+          edges.push(edge);
+        }
+        for (let column = 0; column < 16; column++) {
+          const index = row * 16 + column;
+          const cell = rows[row].start + column;
+          const group = add(fez, 'g', { class: 'main-node', opacity: 0.16 });
+          add(group, 'circle', {
+            cx: mx(column), cy: my(row), r: 12,
+            fill: C[rows[row].band], stroke: C.white, 'stroke-width': 2
+          });
+          group.addEventListener('mouseenter', event => focusMain(index, event));
+          group.addEventListener('mouseleave', clearFocus);
+          main[index] = { group, band: rows[row].band, cell };
+        }
+      }
+
+      let bridgeIndex = 0;
+      for (let gap = 0; gap < 7; gap++) {
+        for (const column of bridgeColumns(gap)) {
+          const index = bridgeIndex;
+          const yy = (my(gap) + my(gap + 1)) / 2;
+          const upper = gap * 16 + column;
+          const lower = (gap + 1) * 16 + column;
+          const upperEdge = add(fez, 'line', {
+            x1: mx(column), y1: my(gap), x2: mx(column), y2: yy,
+            stroke: C.line, 'stroke-width': 2.5, class: 'fez-edge', opacity: 0.2
+          });
+          const lowerEdge = add(fez, 'line', {
+            x1: mx(column), y1: yy, x2: mx(column), y2: my(gap + 1),
+            stroke: C.line, 'stroke-width': 2.5, class: 'fez-edge', opacity: 0.2
+          });
+          edges.push(upperEdge, lowerEdge);
+          const group = add(fez, 'g', { class: 'bridge-node', opacity: 0.12 });
+          add(group, 'circle', {
+            cx: mx(column), cy: yy, r: 10,
+            fill: C.bridge, stroke: C.white, 'stroke-width': 2
+          });
+          group.addEventListener('mouseenter', event => focusBridge(index, event));
+          group.addEventListener('mouseleave', clearFocus);
+          bridges.push({ group, upper, lower, edges: [upperEdge, lowerEdge] });
+          bridgeIndex++;
+        }
+      }
+      label(fez, '8 ROWS × 16 MAIN QUBITS · 28 INTERMEDIATE BRIDGES', {
+        x: 380, y: 605, fill: C.muted, 'text-anchor': 'middle', 'font-size': 10, 'font-family': 'ui-monospace, monospace'
+      });
+    }
+
+    function cancelAnimations() {
+      animations.forEach(animation => animation.cancel());
+      animations = [];
+      rawEls.forEach(dot => {
+        dot.style.transform = 'translate(0px, 0px)';
+        dot.style.opacity = '';
+      });
+    }
+
+    function animateAggregation() {
+      cancelAnimations();
+      aggregateLines.forEach(line => line.setAttribute('opacity', 0));
+      for (const band of ['g', 'r']) aggregateEls[band].forEach(point => point.setAttribute('opacity', 0));
+
+      rawEls.forEach((dot, rawIndex) => {
+        const cell = Number(dot.dataset.cell);
+        const bandDelay = dot.dataset.band === 'r' ? 180 : 0;
+        const delay = cell * 22 + bandDelay + (rawIndex % 5) * 10;
+        animations.push(dot.animate([
+          { transform: 'translate(0px, 0px)', opacity: 0.62 },
+          { transform: `translate(${dot.dataset.dx}px, ${dot.dataset.dy}px)`, opacity: 0.82 }
+        ], {
+          duration: 3000,
+          delay,
+          easing: 'cubic-bezier(.18,.72,.18,1)',
+          fill: 'forwards'
+        }));
+      });
+
+      const colorStart = 4700;
+      for (const band of ['g', 'r']) {
+        aggregateEls[band].forEach((point, cell) => {
+          const delay = colorStart + cell * 42 + (band === 'r' ? 240 : 0);
+          animations.push(point.animate([
+            { opacity: 0.25, r: 2.6 },
+            { opacity: 1, r: 7.2, offset: 0.64 },
+            { opacity: 1, r: 5.1 }
+          ], {
+            duration: 900,
+            delay,
+            easing: 'cubic-bezier(.16,.8,.2,1)',
+            fill: 'forwards'
+          }));
+        });
+      }
+
+      aggregateLines.forEach((line, index) => {
+        animations.push(line.animate([
+          { opacity: 0 },
+          { opacity: 0.85 }
+        ], {
+          duration: 1200,
+          delay: colorStart + 1800 + index * 220,
+          fill: 'forwards'
+        }));
+      });
+
+      rawEls.forEach(dot => {
+        animations.push(dot.animate([
+          { opacity: 0.82 },
+          { opacity: 0.12 }
+        ], {
+          duration: 900,
+          delay: colorStart + 2200,
+          fill: 'forwards'
+        }));
+      });
+    }
+
+    function setStep(nextStep) {
+      step = nextStep;
+      cancelAnimations();
+      document.querySelectorAll('.step').forEach(button => {
+        button.classList.toggle('active', Number(button.dataset.step) === step);
+      });
+      rawEls.forEach(dot => dot.style.opacity = step === 1 ? '0.62' : step === 2 ? '0.62' : '0.08');
+      for (const band of ['g', 'r']) aggregateEls[band].forEach(point => point.setAttribute('opacity', step >= 2 ? 1 : 0));
+      aggregateLines.forEach(line => line.setAttribute('opacity', step >= 2 ? 0.85 : 0));
+      main.forEach(node => node.group.setAttribute('opacity', step >= 3 ? 1 : 0.16));
+      bridges.forEach(node => node.group.setAttribute('opacity', step === 4 ? 1 : step >= 3 ? 0.55 : 0.12));
+      edges.forEach(edge => edge.setAttribute('opacity', step >= 3 ? 0.9 : 0.2));
+      if (step === 2) requestAnimationFrame(() => requestAnimationFrame(animateAggregation));
+    }
+
+    const allInteractive = () => [
+      ...rawEls,
+      ...document.querySelectorAll('.aggregate-point,.aggregate-line'),
+      ...main.map(node => node.group),
+      ...bridges.map(node => node.group),
+      ...edges
+    ];
+    function dimAll() { allInteractive().forEach(el => el.classList.add('is-dim')); }
+    function clearFocus() {
+      allInteractive().forEach(el => el.classList.remove('is-dim', 'is-focus'));
+      tip.style.opacity = 0;
+    }
+    function showTip(event, html) {
+      tip.innerHTML = html;
+      tip.style.opacity = 1;
+      tip.style.left = `${Math.min(window.innerWidth - 335, event.clientX + 14)}px`;
+      tip.style.top = `${Math.min(window.innerHeight - 150, event.clientY + 14)}px`;
+    }
+    function highlightCell(band, cell) {
+      aggregateEls[band][cell].classList.remove('is-dim');
+      aggregateEls[band][cell].classList.add('is-focus');
+      rawEls
+        .filter(dot => dot.dataset.band === band && Number(dot.dataset.cell) === cell)
+        .forEach(dot => {
+          dot.classList.remove('is-dim');
+          dot.classList.add('is-focus');
+        });
+      const index = main.findIndex(node => node.band === band && node.cell === cell);
+      if (index >= 0) {
+        main[index].group.classList.remove('is-dim');
+        main[index].group.classList.add('is-focus');
+      }
+      return index;
+    }
+    function focusCell(band, cell, event) {
+      clearFocus();
+      dimAll();
+      const index = highlightCell(band, cell);
+      const C = colors();
+      showTip(event, `<strong style="color:${C[band]}">${band.toUpperCase()} cell ${cell + 1}/64</strong><br>Raw observations in this interval aggregate into one chronological point, then map to logical main qubit ${index}.`);
+    }
+    function focusMain(index, event) {
+      const node = main[index];
+      focusCell(node.band, node.cell, event);
+    }
+    function focusBridge(index, event) {
+      clearFocus();
+      dimAll();
+      const bridge = bridges[index];
+      const upper = main[bridge.upper];
+      const lower = main[bridge.lower];
+      bridge.group.classList.remove('is-dim');
+      bridge.group.classList.add('is-focus');
+      bridge.edges.forEach(edge => {
+        edge.classList.remove('is-dim');
+        edge.classList.add('is-focus');
+      });
+      for (const node of [upper, lower]) highlightCell(node.band, node.cell);
+      const kind = upper.band === lower.band ? 'within-band temporal bridge' : 'cross-band bridge';
+      const C = colors();
+      showTip(event, `<strong style="color:${C.bridge}">Bridge qubit ${index}</strong><br>${kind}: ${upper.band.toUpperCase()} cell ${upper.cell + 1} ↔ ${lower.band.toUpperCase()} cell ${lower.cell + 1}.<br>No feature is loaded directly here; bridge Z emerges from their interaction.`);
+    }
+
+    window.addEventListener('mousemove', event => {
+      if (tip.style.opacity === '1') {
+        tip.style.left = `${Math.min(window.innerWidth - 335, event.clientX + 14)}px`;
+        tip.style.top = `${Math.min(window.innerHeight - 150, event.clientY + 14)}px`;
+      }
+    });
+
+    function schedule() {
+      clearTimeout(timer);
+      if (!playing) return;
+      const wait = step === 2 ? 10500 : 5200;
+      timer = setTimeout(() => {
+        setStep(step % 4 + 1);
+        schedule();
+      }, wait);
+    }
+    document.getElementById('play').addEventListener('click', event => {
+      playing = !playing;
+      event.currentTarget.textContent = playing ? '❚❚ Pause walkthrough' : '▶ Play walkthrough';
+      schedule();
+    });
+    document.querySelectorAll('.step').forEach(button => {
+      button.addEventListener('click', () => {
+        playing = false;
+        clearTimeout(timer);
+        document.getElementById('play').textContent = '▶ Play walkthrough';
+        setStep(Number(button.dataset.step));
+      });
+    });
+
+    window.addEventListener('themechange', () => {
+      drawCurve();
+      drawFez();
+      setStep(step);
+    });
+
+    drawCurve();
+    drawFez();
+    setStep(1);
+  })();
+  </script>
 </body>
 </html>
