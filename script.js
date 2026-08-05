@@ -79,4 +79,14 @@
     if (oldFigure) oldFigure.before(explainer);
     else rewindingSection.append(explainer);
   }
+
+  if (document.body.classList.contains('fez-page')) {
+    window.addEventListener('load', () => {
+      if (document.querySelector('script[data-fez-encode-animation]')) return;
+      const script = document.createElement('script');
+      script.src = 'fez-encode-animation.js?v=1';
+      script.dataset.fezEncodeAnimation = '';
+      document.body.appendChild(script);
+    }, { once: true });
+  }
 })();
