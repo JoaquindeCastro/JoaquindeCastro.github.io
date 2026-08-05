@@ -53,4 +53,30 @@
     image.addEventListener('load', markLoaded);
     image.addEventListener('error', markMissing);
   });
+
+  const rewindingSection = document.querySelector('#rewinding');
+  if (rewindingSection && !document.querySelector('[data-fez-explainer-embed]')) {
+    const oldFigure = rewindingSection.querySelector('[data-figure="qvr"]');
+    const explainer = document.createElement('div');
+    explainer.className = 'interactive-figure';
+    explainer.setAttribute('data-fez-explainer-embed', '');
+    explainer.innerHTML = `
+      <div class="figure-header">
+        <div>
+          <p class="figure-label">Interactive method explainer</p>
+          <h3>From an AGN light curve to the 156-qubit IBM Fez reservoir</h3>
+        </div>
+        <a class="text-link" href="fez-agn-explainer.html" target="_blank" rel="noopener">Open full screen ↗</a>
+      </div>
+      <iframe
+        src="fez-agn-explainer.html"
+        title="Interactive IBM Fez AGN quantum reservoir explainer"
+        loading="lazy"
+        style="display:block;width:100%;height:clamp(720px,78vw,980px);border:0;background:#081018;"
+      ></iframe>
+    `;
+
+    if (oldFigure) oldFigure.before(explainer);
+    else rewindingSection.append(explainer);
+  }
 })();
